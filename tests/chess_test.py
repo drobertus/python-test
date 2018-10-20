@@ -21,6 +21,11 @@ class TestChess(unittest.TestCase):
             "P"}, {"loc": "e2", "type": "P"}, {"loc": "f2", "type": "P"}, {"loc": "g2",
             "type": "P"}, {"loc": "e1", "type": "K"}, {"loc": "h2", "type": "P"}]
 
+    ambiguousStartPosition = [{"loc": "e5", "type": "b"}, {"loc": "f5", "type": "p"},
+        {"loc": "g4", "type": "b"}, {"loc": "f6", "type": "k"},
+        {"loc": "b5", "type": "R"}, {"loc": "e2", "type": "R"},
+        {"loc": "c3", "type": "P"}, {"loc": "c2", "type": "K"}]
+
     def setUp(self):
         pass
     
@@ -38,7 +43,7 @@ class TestChess(unittest.TestCase):
             "id": 1,
             "jsonrpc": "2.0"
             })
-        print(theresp.status_code)
+
         self.assertEqual(theresp.status_code, 200)
         response = json.loads(theresp.text)
         
@@ -77,17 +82,38 @@ class TestChess(unittest.TestCase):
 
     def test_ambigious_move(self):
         """Make a move from a position in which the moved piece is ambigiuous"""
-        ambiguousStartPosition = []
+        
         theresp = requests.post(self.__class__.chess_url, json={
             "method": "MakeMove",
             "params": {
             "boardState": self.__class__.ambiguousStartPosition,
-            "move": "Nc5",
+            "move": "Re5",
             "playerState": "w"
             },
-            "id": 1,
+            "id": 37,
             "jsonrpc": "2.0"
             })
+        self.assertEquals(theresp.status_code, 200)
+        response = yaml.safe_load(theresp.text)
+        self.assertDictEqual({"error":{"code":-32020,"data":"Re5","message":"Unknown move error."},"id":37}, response)
+
+    def test_valid_pawn_move(self):
+        """Make a valid move that for some reason the algorithm can't tolerate"""
+        
+        theresp = requests.post(self.__class__.chess_url, json={
+            "method": "MakeMove",
+            "params": {
+            "boardState": self.__class__.ambiguousStartPosition,
+            "move": "Pc4",
+            "playerState": "w"
+            },
+            "id": 37,
+            "jsonrpc": "2.0"
+            })
+        self.assertEquals(theresp.status_code, 200)
+        response = yaml.safe_load(theresp.text)
+        self.assertDictEqual({"error":{"code":-32020,"data":"Pc4","message":"Invalid move string."},"id":37}, response)
+
 
 
 if __name__ == '__main__':
