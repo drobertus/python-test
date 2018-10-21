@@ -31,3 +31,9 @@ Testing for the chess application
 # Engine errors
 ## lack of support for valid movements
 ##
+
+
+# conclusions
+
+1. interface is deficient
+2. bugs in basic movement recognition

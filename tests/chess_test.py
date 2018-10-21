@@ -97,6 +97,7 @@ class TestChess(unittest.TestCase):
         response = yaml.safe_load(theresp.text)
         self.assertDictEqual({"error":{"code":-32020,"data":"Re5","message":"Unknown move error."},"id":37}, response)
 
+    #TODO: validate initial state
     def test_valid_pawn_move(self):
         """Make a valid move that for some reason the algorithm can't tolerate"""
         
@@ -114,7 +115,22 @@ class TestChess(unittest.TestCase):
         response = yaml.safe_load(theresp.text)
         self.assertDictEqual({"error":{"code":-32020,"data":"Pc4","message":"Invalid move string."},"id":37}, response)
 
+    def test_pass_through_not_allowed(self):
+        """Make sure that a bishop or rook cant pass through own pieces"""
+        theresp = requests.post(self.__class__.chess_url, json={
+            "method": "MakeMove",
+            "params": {
+            "boardState": self.__class__.defaultStartPosition,
+            "move": "Be5",
+            "playerState": "w"
+            },
+            "id": 1,
+            "jsonrpc": "2.0"
+            })
 
+        self.assertEqual(theresp.status_code, 200)
+        response = json.loads(theresp.text)
+        self.assertDictEqual({'error': {'code': -32020,'data': 'Be5','message': 'Move cannot be made.'},'id': 1}, response)
 
 if __name__ == '__main__':
     unittest.main()
